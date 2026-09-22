@@ -10,6 +10,7 @@ import {
   ChevronRight,
   BookOpen,
   Sliders,
+  RotateCcw,
 } from 'lucide-react';
 import { GameState, SOCKET_EVENTS } from '../types';
 import { socket } from '../socket';
@@ -106,13 +107,26 @@ export function ControlPanel({ state }: Props) {
             {state.questions.filter((q) => q.phase === state.currentPhase).length}
           </span>
         </div>
-        <button
-          onClick={toggleFullscreen}
-          className="p-2 rounded-lg bg-slate-800/90 hover:bg-slate-700 border border-slate-700/80 text-slate-300 hover:text-cyan-300 transition-all"
-          title={isFullscreen ? 'Thoát toàn màn hình' : 'Toàn màn hình'}
-        >
-          {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
-        </button>
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => {
+              if (window.confirm('Reset toàn bộ game? Điểm số và tên các đội sẽ về mặc định, quay lại sảnh chờ.')) {
+                socket.emit(SOCKET_EVENTS.ADMIN_RESTART_GAME);
+              }
+            }}
+            className="p-2 rounded-lg bg-slate-800/90 hover:bg-rose-900/60 border border-slate-700/80 text-slate-300 hover:text-rose-300 transition-all"
+            title="Reset Game"
+          >
+            <RotateCcw className="w-5 h-5" />
+          </button>
+          <button
+            onClick={toggleFullscreen}
+            className="p-2 rounded-lg bg-slate-800/90 hover:bg-slate-700 border border-slate-700/80 text-slate-300 hover:text-cyan-300 transition-all"
+            title={isFullscreen ? 'Thoát toàn màn hình' : 'Toàn màn hình'}
+          >
+            {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
+          </button>
+        </div>
       </div>
 
       {/* Bộ câu hỏi */}

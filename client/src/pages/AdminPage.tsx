@@ -8,6 +8,7 @@ import { ControlPanel } from '../components/ControlPanel';
 import { StudioBackground } from '../components/StudioBackground';
 import { GameOverBoard } from '../components/GameOverBoard';
 import { PhaseCompleteBanner } from '../components/PhaseCompleteBanner';
+import { StartGameBanner } from '../components/StartGameBanner';
 import { socket } from '../socket';
 import { SOCKET_EVENTS } from '../types';
 
@@ -66,6 +67,8 @@ export function AdminPage() {
           hasPhase2Questions={state.questions.some((q) => q.phase === 2)}
         />
       )}
+
+      {state.phase === 'idle' && <StartGameBanner onStart={() => socket.emit(SOCKET_EVENTS.ADMIN_START_GAME)} />}
 
       <main className="relative z-10 flex-1 min-h-0 w-full p-2 sm:p-2.5 xl:p-3.5 2xl:p-4 flex flex-row gap-2.5 sm:gap-3 xl:gap-4 items-stretch overflow-hidden">
         {/* Left: score board */}

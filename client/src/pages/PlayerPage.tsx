@@ -58,6 +58,14 @@ export function PlayerPage() {
     <div className="min-h-screen w-full flex flex-col justify-between relative overflow-hidden select-none">
       <PlayerStageBackground />
       <Popup popup={state.popup} />
+      {state.phase === 'idle' && (
+        <div className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="text-center">
+            <img src="/logo.png" alt="Chiếc Nón Kì Quặc" className="w-28 mx-auto mb-4 drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)]" />
+            <p className="text-xl font-bold text-amber-300 animate-pulse">Đang chờ MC bắt đầu trò chơi...</p>
+          </div>
+        </div>
+      )}
       {state.phase === 'phase-complete' && (
         <PhaseCompleteBoard teams={state.teams} hasPhase2Questions={state.questions.some((q) => q.phase === 2)} />
       )}

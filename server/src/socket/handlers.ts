@@ -12,7 +12,8 @@ import {
   getTeam,
   advanceToNextTeam,
   startNextPhase,
-  restartGame,
+  resetToLobby,
+  startGame,
 } from '../state';
 import {
   SOCKET_EVENTS,
@@ -155,7 +156,12 @@ export function registerSocketHandlers(io: Server, socket: Socket): void {
   });
 
   socket.on(SOCKET_EVENTS.ADMIN_RESTART_GAME, () => {
-    restartGame();
+    resetToLobby();
+    broadcast?.();
+  });
+
+  socket.on(SOCKET_EVENTS.ADMIN_START_GAME, () => {
+    startGame();
     broadcast?.();
     startStructureRevealTimer();
   });

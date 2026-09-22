@@ -3,7 +3,7 @@ import cors from 'cors';
 import path from 'path';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
-import { registerSocketHandlers, initBroadcast, startStructureRevealTimer } from './socket/handlers';
+import { registerSocketHandlers, initBroadcast } from './socket/handlers';
 
 const app = express();
 app.use(cors());
@@ -26,7 +26,8 @@ const io = new Server(httpServer, {
 });
 
 initBroadcast(io);
-startStructureRevealTimer(); // question 1 starts revealing on its own, no admin click needed
+// Server boots into the "idle" lobby — the admin presses Start when ready
+// (see ADMIN_START_GAME), so nothing reveals until then.
 
 io.on('connection', (socket) => {
   console.log(`[socket] connected: ${socket.id}`);

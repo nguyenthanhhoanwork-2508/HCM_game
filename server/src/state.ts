@@ -43,7 +43,7 @@ export function createInitialState(): GameState {
     activeTeamId: null,
     questions,
     currentPhase: 1,
-    phase: 'showing-question',
+    phase: 'idle',
     popup: null,
     wheelSegments: [...DEFAULT_WHEEL_SEGMENTS],
     ...buildQuestionState(
@@ -135,16 +135,27 @@ export function startNextPhase(): boolean {
   return true;
 }
 
-// Full reset: back to round 1, question 1, every team's score and name
-// cleared. Used by the "Chơi lại" button on the final leaderboard.
-export function restartGame(): void {
+// Full reset: back to round 1 question 1, every team's score and name
+// cleared, and back to the "idle" lobby so the admin can brief players
+// before pressing Start again. Used by the "Reset Game" button and by
+// "Chơi lại" on the final leaderboard.
+export function resetToLobby(): void {
   state.currentPhase = 1;
   for (const team of state.teams) {
     team.score = 0;
     team.name = `Team ${team.id}`;
   }
   state.activeTeamId = null;
-  startQuestion(0);
+  Object.assign(state, buildQuestionState(questionsForCurrentPhase(), 0));
+  state.phase = 'idle';
+  state.popup = null;
+}
+
+// Leaves the "idle" lobby and reveals question 1 for the first time.
+export function startGame(): void {
+  if (state.phase !== 'idle') return;
+  state.phase = 'showing-question';
+  state.popup = null;
 }
 
 export function updateWheelSegments(segments: WheelSegment[]): void {

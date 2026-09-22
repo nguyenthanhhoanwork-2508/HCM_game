@@ -145,6 +145,7 @@ export const SOCKET_EVENTS = {
   ADMIN_RESET_WHEEL: 'admin:resetWheel',
   ADMIN_START_NEXT_PHASE: 'admin:startNextPhase',
   ADMIN_RESTART_GAME: 'admin:restartGame',
+  ADMIN_START_GAME: 'admin:startGame',
   // player
   PLAYER_REQUEST_SPIN: 'player:requestSpin',
   PLAYER_REQUEST_SOLVE: 'player:requestSolve',
