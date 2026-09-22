@@ -1,0 +1,6 @@
+{
+  "name": "Chiếc Nón Kỳ Quặc - Game Show Player",
+  "description": "Giao diện người chơi gameshow Chiếc Nón Kỳ Quặc với bảng ô chữ bí ẩn chuẩn hiệu ứng ánh sáng sân khấu.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

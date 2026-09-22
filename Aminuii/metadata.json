@@ -1,0 +1,6 @@
+{
+  "name": "Chiếc Nón Kỳ Diệu",
+  "description": "Trò chơi đoán chữ Vòng Quay Kỳ Diệu với giao diện hiện đại, tối giản và chuyên nghiệp cho lớp học, sự kiện và tiệc tùng.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

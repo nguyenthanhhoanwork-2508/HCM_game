@@ -1,0 +1,46 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Be Vietnam Pro', sans-serif;
+  }
+  h1, h2, h3, .font-display {
+    font-family: 'Montserrat', sans-serif;
+  }
+}
+
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.transform-style-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+/* Neon glow animations */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 14px rgba(16, 185, 129, 0.7), 0 0 24px rgba(52, 211, 153, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.9), 0 0 32px rgba(52, 211, 153, 0.6);
+  }
+}
+
+.glow-mystery-tile {
+  box-shadow: 0 0 12px #10b981, 0 0 22px rgba(52, 211, 153, 0.45);
+}
+
+.glow-active-team {
+  box-shadow: 0 0 18px rgba(251, 191, 36, 0.55), inset 0 0 10px rgba(251, 191, 36, 0.2);
+}
+
