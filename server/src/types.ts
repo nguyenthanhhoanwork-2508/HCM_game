@@ -12,6 +12,7 @@ export type GamePhase =
   | 'game-over'; // no more questions left in the final round; show the final leaderboard
 
 export type QuestionType = 'first' | 'normal';
+export type GameRound = 0 | 1 | 2;
 
 export interface Question {
   id: number;
@@ -19,7 +20,7 @@ export interface Question {
   answer: string; // Vietnamese string, spaces allowed (used for the tile board)
   displayAnswer: string; // full answer with proper Vietnamese diacritics, shown once solved
   type: QuestionType;
-  phase: 1 | 2; // which round this question belongs to
+  phase: GameRound; // tutorial round 0, then the two scored rounds
 }
 
 export interface Team {
@@ -57,7 +58,7 @@ export interface GameState {
   teams: Team[];
   activeTeamId: number | null;
   questions: Question[]; // runtime-mutable question bank, admin can add/delete/select
-  currentPhase: 1 | 2; // which round is currently being played
+  currentPhase: GameRound; // tutorial round 0, then the two scored rounds
   currentQuestionIndex: number; // index within the current phase's questions
   currentQuestion: Question;
   phase: GamePhase;
@@ -112,7 +113,7 @@ export interface AddQuestionPayload {
   question: string;
   answer: string;
   displayAnswer: string;
-  phase: 1 | 2;
+  phase: GameRound;
 }
 
 export interface DeleteQuestionPayload {
@@ -129,6 +130,7 @@ export interface UpdateWheelSegmentsPayload {
 
 // Client -> Server event names
 export const SOCKET_EVENTS = {
+  CLIENT_REQUEST_STATE: 'client:requestState',
   // admin
   ADMIN_SELECT_TEAM: 'admin:selectTeam',
   ADMIN_NEXT_QUESTION: 'admin:nextQuestion',

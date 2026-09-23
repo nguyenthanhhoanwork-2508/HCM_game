@@ -1,23 +1,27 @@
 import { PartyPopper, ArrowRight } from 'lucide-react';
-import { Team } from '../types';
+import { GameRound, Team } from '../types';
 
 interface Props {
   teams: Team[];
   onContinue?: () => void; // provided by Admin only; Player sees a read-only screen
-  hasPhase2Questions: boolean;
+  currentPhase: GameRound;
+  hasNextPhaseQuestions: boolean;
 }
 
-export function PhaseCompleteBoard({ teams, onContinue, hasPhase2Questions }: Props) {
+export function PhaseCompleteBoard({ teams, onContinue, currentPhase, hasNextPhaseQuestions }: Props) {
   const ranked = [...teams].sort((a, b) => b.score - a.score);
+  const nextPhase = currentPhase + 1;
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-4">
       <div className="w-full max-w-xl text-center">
         <PartyPopper className="w-14 h-14 mx-auto text-amber-400 mb-2" />
         <h1 className="text-3xl sm:text-4xl font-black text-amber-300 tracking-wide mb-1 drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]">
-          CHÚC MỪNG HOÀN THÀNH CHẶNG 1!
+          {currentPhase === 0 ? 'HOÀN THÀNH CHẶNG CHƠI THỬ!' : `CHÚC MỪNG HOÀN THÀNH CHẶNG ${currentPhase}!`}
         </h1>
-        <p className="text-slate-400 text-sm mb-6">Điểm số hiện tại của các đội</p>
+        <p className="text-slate-400 text-sm mb-6">
+          {currentPhase === 0 ? 'Điểm chơi thử sẽ về 0 khi bắt đầu Chặng 1' : 'Điểm số hiện tại của các đội'}
+        </p>
 
         <div className="space-y-2 mb-6">
           {ranked.map((team, i) => (
@@ -37,20 +41,20 @@ export function PhaseCompleteBoard({ teams, onContinue, hasPhase2Questions }: Pr
           <>
             <button
               onClick={onContinue}
-              disabled={!hasPhase2Questions}
+              disabled={!hasNextPhaseQuestions}
               className="px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 disabled:from-slate-700 disabled:to-slate-700 disabled:cursor-not-allowed text-slate-950 disabled:text-slate-400 font-black text-base tracking-wide shadow-lg shadow-amber-500/20 transition-all inline-flex items-center gap-2 active:scale-95"
             >
-              <span>Sang Chặng 2</span>
+              <span>Sang Chặng {nextPhase}</span>
               <ArrowRight className="w-5 h-5" />
             </button>
-            {!hasPhase2Questions && (
+            {!hasNextPhaseQuestions && (
               <p className="text-rose-400 text-xs mt-2">
-                Chưa có câu hỏi nào cho Chặng 2 — mở "Bộ câu hỏi" ở panel Control và thêm câu hỏi, chọn "Chặng 2".
+                Chưa có câu hỏi nào cho Chặng {nextPhase} — hãy nhờ MC bổ sung bộ câu hỏi.
               </p>
             )}
           </>
         ) : (
-          <p className="text-slate-500 text-sm">Đang chờ MC chuyển sang Chặng 2...</p>
+          <p className="text-slate-500 text-sm">Đang chờ MC chuyển sang Chặng {nextPhase}...</p>
         )}
       </div>
     </div>

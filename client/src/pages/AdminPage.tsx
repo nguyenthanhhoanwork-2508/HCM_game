@@ -64,7 +64,8 @@ export function AdminPage() {
       {state.phase === 'phase-complete' && (
         <PhaseCompleteBanner
           onContinue={() => socket.emit(SOCKET_EVENTS.ADMIN_START_NEXT_PHASE)}
-          hasPhase2Questions={state.questions.some((q) => q.phase === 2)}
+          currentPhase={state.currentPhase}
+          hasNextPhaseQuestions={state.questions.some((q) => q.phase === state.currentPhase + 1)}
         />
       )}
 

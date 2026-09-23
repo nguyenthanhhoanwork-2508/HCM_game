@@ -1,18 +1,38 @@
 import { questions as DEFAULT_QUESTIONS } from './data/questions';
 import { wheelSegments as DEFAULT_WHEEL_SEGMENTS } from './data/wheelSegments';
 import { buildAnswerLayout } from './utils/answerLayout';
-import { GameState, PopupState, Question, Team, WheelSegment } from './types';
+import { loadQuestions, saveQuestions } from './persistence/questionStore';
+import { GameRound, GameState, PopupState, Question, Team, WheelSegment } from './types';
 
-const initialTeams: Team[] = [
-  { id: 1, name: 'Team 1', score: 0 },
-  { id: 2, name: 'Team 2', score: 0 },
-  { id: 3, name: 'Team 3', score: 0 },
-  { id: 4, name: 'Team 4', score: 0 },
-  { id: 5, name: 'Team 5', score: 0 },
-];
+const DEFAULT_TEAM_NAMES: Record<number, string> = {
+  1: 'Nhóm 1',
+  2: 'Nhóm 2',
+  3: 'Nhóm 3',
+  4: 'Nhóm 5',
+  5: 'Nhóm 6',
+};
+
+function createInitialTeams(): Team[] {
+  return Object.entries(DEFAULT_TEAM_NAMES).map(([id, name]) => ({ id: Number(id), name, score: 0 }));
+}
+
+export function shuffleTeams(teams: Team[], random: () => number = Math.random): Team[] {
+  const shuffled = [...teams];
+  for (let index = shuffled.length - 1; index > 0; index--) {
+    const target = Math.floor(random() * (index + 1));
+    [shuffled[index], shuffled[target]] = [shuffled[target], shuffled[index]];
+  }
+  return shuffled;
+}
 
 let popupCounter = 0;
-let questionIdCounter = Math.max(...DEFAULT_QUESTIONS.map((q) => q.id)) + 1;
+const loadedQuestions = loadQuestions(DEFAULT_QUESTIONS);
+const tutorialDefaults = DEFAULT_QUESTIONS.filter((question) => question.phase === 0);
+if (!loadedQuestions.some((question) => question.phase === 0)) {
+  loadedQuestions.unshift(...tutorialDefaults.map((question) => ({ ...question })));
+}
+saveQuestions(loadedQuestions);
+let questionIdCounter = Math.max(...loadedQuestions.map((q) => q.id));
 
 function buildQuestionState(questionList: Question[], index: number) {
   const currentQuestion = questionList[index];
@@ -36,18 +56,29 @@ function questionsForCurrentPhase(): Question[] {
   return state.questions.filter((q) => q.phase === state.currentPhase);
 }
 
+function resetTeamScores(): void {
+  for (const team of state.teams) {
+    team.score = 0;
+  }
+}
+
+function randomizePlayOrder(): void {
+  state.teams = shuffleTeams(state.teams);
+  state.activeTeamId = state.teams[0]?.id ?? null;
+}
+
 export function createInitialState(): GameState {
-  const questions = [...DEFAULT_QUESTIONS];
+  const questions = loadedQuestions.map((question) => ({ ...question }));
   return {
-    teams: initialTeams,
+    teams: createInitialTeams(),
     activeTeamId: null,
     questions,
-    currentPhase: 1,
+    currentPhase: 0,
     phase: 'idle',
     popup: null,
     wheelSegments: [...DEFAULT_WHEEL_SEGMENTS],
     ...buildQuestionState(
-      questions.filter((q) => q.phase === 1),
+      questions.filter((q) => q.phase === 0),
       0
     ),
   };
@@ -73,23 +104,27 @@ export function resetForNextQuestion(): void {
     return;
   }
   // Out of questions for this round.
-  state.phase = state.currentPhase === 1 ? 'phase-complete' : 'game-over';
+  state.phase = state.currentPhase < 2 ? 'phase-complete' : 'game-over';
   state.popup = null;
 }
 
 export function jumpToQuestion(id: number): boolean {
   const target = state.questions.find((q) => q.id === id);
   if (!target) return false;
+  const changesPhase = target.phase !== state.currentPhase;
+  if (state.currentPhase === 0 && target.phase > 0) resetTeamScores();
   state.currentPhase = target.phase;
+  if (changesPhase) randomizePlayOrder();
   const list = questionsForCurrentPhase();
   const idx = list.findIndex((q) => q.id === id);
   startQuestion(idx);
   return true;
 }
 
-export function addQuestion(question: string, answer: string, displayAnswer: string, phase: 1 | 2): void {
+export function addQuestion(question: string, answer: string, displayAnswer: string, phase: GameRound): void {
   questionIdCounter += 1;
   state.questions = [...state.questions, { id: questionIdCounter, question, answer, displayAnswer, type: 'normal', phase }];
+  saveQuestions(state.questions);
 }
 
 export function deleteQuestion(id: number): void {
@@ -102,7 +137,10 @@ export function deleteQuestion(id: number): void {
   const deletedIndexInPhase = phaseList.findIndex((q) => q.id === id);
   state.questions = state.questions.filter((q) => q.id !== id);
 
-  if (target.phase !== state.currentPhase) return; // doesn't affect the round in progress
+  if (target.phase !== state.currentPhase) {
+    saveQuestions(state.questions);
+    return; // doesn't affect the round in progress
+  }
 
   if (deletedIndexInPhase < state.currentQuestionIndex) {
     state.currentQuestionIndex -= 1;
@@ -110,40 +148,50 @@ export function deleteQuestion(id: number): void {
     const newList = questionsForCurrentPhase();
     startQuestion(Math.min(deletedIndexInPhase, newList.length - 1));
   }
+  saveQuestions(state.questions);
 }
 
 export function resetQuestions(): void {
-  state.questions = [...DEFAULT_QUESTIONS];
-  state.currentPhase = 1;
+  state.questions = DEFAULT_QUESTIONS.map((question) => ({ ...question }));
+  questionIdCounter = Math.max(...state.questions.map((question) => question.id));
+  state.currentPhase = 0;
   startQuestion(0);
+  saveQuestions(state.questions);
 }
 
-// Moves on from round 1 to round 2: resets every team's score and name (a
-// fresh roster is expected to play round 2), then starts round 2's first
-// question. Returns false (and does nothing) if round 2 has no questions
-// yet — the admin needs to add some via the question manager first.
+// Move to the next round. Leaving tutorial round 0 clears only its temporary
+// scores and keeps team names. The existing round 1 -> 2 behavior starts a
+// fresh roster, so both scores and names are reset at that boundary.
 export function startNextPhase(): boolean {
-  const phase2List = state.questions.filter((q) => q.phase === 2);
-  if (phase2List.length === 0) return false;
+  if (state.currentPhase >= 2) return false;
+  const nextPhase = (state.currentPhase + 1) as GameRound;
+  const nextPhaseList = state.questions.filter((q) => q.phase === nextPhase);
+  if (nextPhaseList.length === 0) return false;
 
-  state.currentPhase = 2;
-  for (const team of state.teams) {
-    team.score = 0;
-    team.name = `Team ${team.id}`;
+  if (state.currentPhase === 0) {
+    resetTeamScores();
+  } else if (state.currentPhase === 1) {
+    for (const team of state.teams) {
+      team.score = 0;
+      team.name = DEFAULT_TEAM_NAMES[team.id];
+    }
   }
+  state.currentPhase = nextPhase;
+  randomizePlayOrder();
   startQuestion(0);
   return true;
 }
 
-// Full reset: back to round 1 question 1, every team's score and name
+// Full reset: back to tutorial round 0, every team's score and name
 // cleared, and back to the "idle" lobby so the admin can brief players
 // before pressing Start again. Used by the "Reset Game" button and by
 // "Chơi lại" on the final leaderboard.
 export function resetToLobby(): void {
-  state.currentPhase = 1;
+  state.currentPhase = state.questions.some((question) => question.phase === 0) ? 0 : 1;
+  state.teams.sort((a, b) => a.id - b.id);
   for (const team of state.teams) {
     team.score = 0;
-    team.name = `Team ${team.id}`;
+    team.name = DEFAULT_TEAM_NAMES[team.id];
   }
   state.activeTeamId = null;
   Object.assign(state, buildQuestionState(questionsForCurrentPhase(), 0));
@@ -154,6 +202,7 @@ export function resetToLobby(): void {
 // Leaves the "idle" lobby and reveals question 1 for the first time.
 export function startGame(): void {
   if (state.phase !== 'idle') return;
+  randomizePlayOrder();
   state.phase = 'showing-question';
   state.popup = null;
 }

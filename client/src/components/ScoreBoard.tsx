@@ -20,7 +20,7 @@ export function ScoreBoard({ teams, activeTeamId, onSelectTeam, eliminatedTeamId
         <div className="flex items-center gap-2 pb-2 mb-1 border-b border-slate-800/80 shrink-0">
           <Trophy className="w-4 h-4 xl:w-5 xl:h-5 text-amber-400 shrink-0" />
           <span className="text-xs xl:text-sm font-extrabold uppercase tracking-wider text-slate-200 truncate">
-            BẢNG ĐIỂM
+            THỨ TỰ CHƠI &amp; BẢNG ĐIỂM
           </span>
         </div>
 
@@ -59,6 +59,7 @@ export function ScoreBoard({ teams, activeTeamId, onSelectTeam, eliminatedTeamId
 
                 <div className="flex items-center justify-between min-w-0">
                   <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <span className="text-[10px] xl:text-xs font-black text-slate-500 tabular-nums shrink-0">#{i + 1}</span>
                     <span className="w-2.5 h-2.5 xl:w-3 xl:h-3 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: color }} />
                     <span className="text-xs sm:text-sm xl:text-base font-bold text-slate-200 truncate">{team.name}</span>
                     {isLeader && <Trophy className="w-3 h-3 xl:w-3.5 xl:h-3.5 text-amber-400 shrink-0" />}

@@ -11,6 +11,7 @@ import {
   BookOpen,
   Sliders,
   RotateCcw,
+  ArrowRightCircle,
 } from 'lucide-react';
 import { GameState, SOCKET_EVENTS } from '../types';
 import { socket } from '../socket';
@@ -70,6 +71,8 @@ export function ControlPanel({ state }: Props) {
 
   const activeTeam = state.teams.find((t) => t.id === state.activeTeamId);
   const activeTeamEliminated = !!(state.activeTeamId && state.enterUsedByTeam[state.activeTeamId]);
+  const nextPhase = state.currentPhase + 1;
+  const hasNextPhaseQuestions = state.currentPhase < 2 && state.questions.some((question) => question.phase === nextPhase);
 
   const submitLetter = (e: React.FormEvent) => {
     e.preventDefault();
@@ -265,6 +268,32 @@ export function ControlPanel({ state }: Props) {
           <span>Câu tiếp</span>
         </button>
       </div>
+
+      {state.currentPhase < 2 && (
+        <button
+          type="button"
+          disabled={!hasNextPhaseQuestions || state.wheelSpinning}
+          title={
+            !hasNextPhaseQuestions
+              ? `Chưa có câu hỏi Chặng ${nextPhase}`
+              : state.wheelSpinning
+                ? 'Hãy chờ vòng quay dừng lại'
+                : `Chuyển ngay sang Chặng ${nextPhase}`
+          }
+          onClick={() => {
+            const resetNotice = state.currentPhase === 0
+              ? 'Toàn bộ điểm chơi thử sẽ về 0.'
+              : 'Theo luồng hiện tại, điểm và tên đội sẽ được reset.';
+            if (window.confirm(`Chuyển ngay sang Chặng ${nextPhase}? ${resetNotice}`)) {
+              socket.emit(SOCKET_EVENTS.ADMIN_START_NEXT_PHASE);
+            }
+          }}
+          className="w-full py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-600 disabled:cursor-not-allowed text-white font-black text-sm transition-colors flex items-center justify-center gap-2 active:scale-[0.98]"
+        >
+          <ArrowRightCircle className="w-5 h-5" />
+          <span>Sang Chặng {nextPhase}</span>
+        </button>
+      )}
 
       <div className="flex items-center justify-center gap-1.5 text-xs text-slate-600">
         <Sparkles className="w-3.5 h-3.5" />

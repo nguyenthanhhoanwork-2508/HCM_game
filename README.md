@@ -66,6 +66,23 @@ Mở trình duyệt:
 - Team 2: http://localhost:5173/player/2
 - ... Team 5: http://localhost:5173/player/5
 
+## Lưu bộ câu hỏi
+
+Mọi thao tác thêm, xóa hoặc khôi phục câu hỏi trên trang Admin đều được ghi vào JSON. Mặc định khi chạy local, file nằm tại `server/data/questions.json` và không được commit.
+
+Trên Render, filesystem mặc định là tạm thời. Để JSON còn nguyên sau restart/deploy:
+
+1. Gắn Persistent Disk vào web service, ví dụ mount path `/var/data`.
+2. Thêm biến môi trường `QUESTIONS_FILE=/var/data/questions.json`.
+3. Redeploy service một lần. Các thay đổi câu hỏi sau đó sẽ được đọc lại từ disk khi server khởi động.
+
+## Các chặng
+
+- **Chặng 0**: chơi thử đầy đủ gameplay. Khi chuyển sang Chặng 1, điểm chơi thử của tất cả đội được reset về 0, tên đội được giữ lại.
+- **Chặng 1 và 2**: hai chặng chính, giữ nguyên luồng thi đấu sẵn có của game.
+
+Năm nhóm mặc định là `Nhóm 1`, `Nhóm 2`, `Nhóm 3`, `Nhóm 5`, `Nhóm 6`. Khi bắt đầu game và mỗi lần đổi chặng, server dùng Fisher–Yates để xáo trộn lại thứ tự. Mảng thứ tự này đồng thời điều khiển dashboard và logic chuyển lượt sang nhóm kế tiếp; nhóm đứng đầu sẽ mở màn chặng mới.
+
 Mở 6 tab/cửa sổ (1 admin + 5 player) để demo đồng bộ realtime.
 
 ## Danh sách socket event
@@ -112,7 +129,7 @@ Server → Client:
 
 ## Ghi chú thiết kế
 
-- `answerLayout.ts`: 44 ô chia 4 hàng (10/12/12/10), ưu tiên chia đều số từ cho 2 hàng giữa (rộng hơn), mỗi hàng tự căn giữa; fallback greedy-wrap nếu tràn.
+- `answerLayout.ts`: 44 ô chia 4 hàng (10/12/12/10), dùng số hàng ít nhất có thể và chỉ xuống hàng tại dấu cách, không cắt đôi một từ. Dấu cách trong cùng hàng chiếm 1 ô; các hàng được căn giữa.
 - Giao diện Admin (Scoreboard/AnswerBoard/Wheel/ControlPanel/StudioBackground) lấy từ `Aminuii/src/components/`, được viết lại để đọc/ghi qua `useGameState()` + `socket.emit(...)` thay vì state cục bộ + localStorage của bản gốc. Các modal của Aminuii cần backend mới (Quản lý câu hỏi, Tùy chỉnh vòng quay, Đoán ô chữ kiểu gõ tay, Luật chơi) đã được lược bỏ để giữ nguyên logic backend.
 - Vòng quay (`Wheel.tsx`) chỉ render ở Admin — Player không thấy. 15 ô: 8 cộng / 3 trừ / 3 hành động / 1 may mắn, xen kẽ không gom cụm (`server/src/data/wheelSegments.ts`, đồng bộ với `client/src/wheelSegments.ts`).
 - Popup tự động biến mất sau 4 giây (server-side timer), đồng bộ cho mọi màn.

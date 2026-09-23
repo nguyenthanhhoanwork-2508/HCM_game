@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { AdminPage } from './pages/AdminPage';
 import { PlayerPage } from './pages/PlayerPage';
+import { DEFAULT_TEAM_NAMES } from './teamConfig';
 
 function Home() {
   return (
@@ -12,7 +13,7 @@ function Home() {
       <div className="flex gap-3">
         {[1, 2, 3, 4, 5].map((id) => (
           <Link key={id} to={`/player/${id}`} className="bg-blue-600 font-bold px-4 py-2 rounded-lg">
-            Team {id}
+            {DEFAULT_TEAM_NAMES[id]}
           </Link>
         ))}
       </div>

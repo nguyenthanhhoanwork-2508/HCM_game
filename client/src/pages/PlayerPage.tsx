@@ -10,6 +10,7 @@ import { GameOverBoard } from '../components/GameOverBoard';
 import { PhaseCompleteBoard } from '../components/PhaseCompleteBoard';
 import { socket } from '../socket';
 import { SOCKET_EVENTS } from '../types';
+import { getDefaultTeamName } from '../teamConfig';
 
 export function PlayerPage() {
   const { teamId: teamIdParam } = useParams();
@@ -67,7 +68,11 @@ export function PlayerPage() {
         </div>
       )}
       {state.phase === 'phase-complete' && (
-        <PhaseCompleteBoard teams={state.teams} hasPhase2Questions={state.questions.some((q) => q.phase === 2)} />
+        <PhaseCompleteBoard
+          teams={state.teams}
+          currentPhase={state.currentPhase}
+          hasNextPhaseQuestions={state.questions.some((q) => q.phase === state.currentPhase + 1)}
+        />
       )}
       {state.phase === 'game-over' && <GameOverBoard teams={state.teams} />}
 
@@ -75,7 +80,7 @@ export function PlayerPage() {
         teams={state.teams}
         activeTeamId={state.activeTeamId}
         myTeamId={teamId}
-        myTeamName={team?.name ?? `Team ${teamId}`}
+        myTeamName={team?.name ?? getDefaultTeamName(teamId)}
         onRenameTeam={(name) => socket.emit(SOCKET_EVENTS.PLAYER_RENAME_TEAM, { teamId, name })}
       />
 

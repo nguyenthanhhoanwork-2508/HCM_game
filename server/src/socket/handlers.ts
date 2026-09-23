@@ -118,6 +118,12 @@ export function registerSocketHandlers(io: Server, socket: Socket): void {
   // Send current state immediately on connect.
   socket.emit(SOCKET_EVENTS.STATE_SYNC, state);
 
+  // Role selection can happen after this socket has already connected. Let a
+  // newly mounted Admin/Player page request a fresh snapshot explicitly.
+  socket.on(SOCKET_EVENTS.CLIENT_REQUEST_STATE, () => {
+    socket.emit(SOCKET_EVENTS.STATE_SYNC, state);
+  });
+
   socket.on(SOCKET_EVENTS.ADMIN_SELECT_TEAM, ({ teamId }: SelectTeamPayload) => {
     if (!getTeam(teamId)) return;
     state.activeTeamId = teamId;
@@ -141,13 +147,20 @@ export function registerSocketHandlers(io: Server, socket: Socket): void {
     const a = answer.trim();
     const da = displayAnswer.trim() || a;
     if (!q || !a) return;
-    addQuestion(q, a, da, phase === 2 ? 2 : 1);
+    const targetPhase = phase === 0 || phase === 2 ? phase : 1;
+    addQuestion(q, a, da, targetPhase);
     broadcast?.();
   });
 
   socket.on(SOCKET_EVENTS.ADMIN_START_NEXT_PHASE, () => {
+    const nextPhase = state.currentPhase + 1;
+    if (state.wheelSpinning) {
+      showPopup('error', 'Hãy chờ vòng quay dừng lại trước khi chuyển chặng!');
+      broadcast?.();
+      return;
+    }
     if (!startNextPhase()) {
-      showPopup('error', 'Chưa có câu hỏi nào cho Chặng 2 — hãy thêm câu hỏi trước!');
+      showPopup('error', `Chưa có câu hỏi nào cho Chặng ${nextPhase} — hãy thêm câu hỏi trước!`);
       broadcast?.();
       return;
     }

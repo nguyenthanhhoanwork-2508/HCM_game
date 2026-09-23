@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Plus, Trash2, Sparkles, RefreshCw } from 'lucide-react';
-import { Question, SOCKET_EVENTS } from '../types';
+import { GameRound, Question, SOCKET_EVENTS } from '../types';
 import { socket } from '../socket';
 
 interface Props {
   questions: Question[];
-  currentPhase: 1 | 2;
+  currentPhase: GameRound;
   currentQuestionIndex: number;
 }
 
@@ -74,8 +74,9 @@ export function QuestionManagerPanel({ questions, currentPhase, currentQuestionI
   const [questionText, setQuestionText] = useState('');
   const [answer, setAnswer] = useState('');
   const [displayAnswer, setDisplayAnswer] = useState('');
-  const [phase, setPhase] = useState<1 | 2>(1);
+  const [phase, setPhase] = useState<GameRound>(1);
 
+  const phase0List = questions.filter((q) => q.phase === 0);
   const phase1List = questions.filter((q) => q.phase === 1);
   const phase2List = questions.filter((q) => q.phase === 2);
 
@@ -96,6 +97,7 @@ export function QuestionManagerPanel({ questions, currentPhase, currentQuestionI
 
   return (
     <div className="p-3 space-y-3">
+      <QuestionGroup title="Chặng 0 — Chơi thử" list={phase0List} isActivePhase={currentPhase === 0} currentQuestionIndex={currentQuestionIndex} />
       <QuestionGroup title="Chặng 1" list={phase1List} isActivePhase={currentPhase === 1} currentQuestionIndex={currentQuestionIndex} />
       <QuestionGroup title="Chặng 2" list={phase2List} isActivePhase={currentPhase === 2} currentQuestionIndex={currentQuestionIndex} />
 
@@ -107,11 +109,20 @@ export function QuestionManagerPanel({ questions, currentPhase, currentQuestionI
           </h4>
           <div>
             <label className="block text-xs font-medium text-slate-400 mb-1">Thuộc chặng:</label>
-            <div className="flex gap-2">
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => setPhase(0)}
+                className={`py-1.5 rounded-lg text-sm font-bold border ${
+                  phase === 0 ? 'bg-sky-500/20 border-sky-500/50 text-sky-300' : 'bg-slate-900 border-slate-700 text-slate-400'
+                }`}
+              >
+                Chặng 0
+              </button>
               <button
                 type="button"
                 onClick={() => setPhase(1)}
-                className={`flex-1 py-1.5 rounded-lg text-sm font-bold border ${
+                className={`py-1.5 rounded-lg text-sm font-bold border ${
                   phase === 1 ? 'bg-amber-500/20 border-amber-500/50 text-amber-300' : 'bg-slate-900 border-slate-700 text-slate-400'
                 }`}
               >
@@ -120,7 +131,7 @@ export function QuestionManagerPanel({ questions, currentPhase, currentQuestionI
               <button
                 type="button"
                 onClick={() => setPhase(2)}
-                className={`flex-1 py-1.5 rounded-lg text-sm font-bold border ${
+                className={`py-1.5 rounded-lg text-sm font-bold border ${
                   phase === 2 ? 'bg-amber-500/20 border-amber-500/50 text-amber-300' : 'bg-slate-900 border-slate-700 text-slate-400'
                 }`}
               >

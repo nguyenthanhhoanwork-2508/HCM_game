@@ -8,6 +8,7 @@ export function useGameState(): GameState | null {
   useEffect(() => {
     const onSync = (next: GameState) => setState(next);
     socket.on(SOCKET_EVENTS.STATE_SYNC, onSync);
+    socket.emit(SOCKET_EVENTS.CLIENT_REQUEST_STATE);
     return () => {
       socket.off(SOCKET_EVENTS.STATE_SYNC, onSync);
     };
